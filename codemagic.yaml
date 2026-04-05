@@ -12,7 +12,6 @@ workflows:
         BUNDLE_ID: com.nophonetime.app
         XCODE_SCHEME: NoPhoneTime
       xcode: latest
-      cocoapods: default
 
     triggering:
       events:
@@ -28,13 +27,12 @@ workflows:
       - name: Generate Xcode project
         script: xcodegen generate
 
-      - name: Set up keychain & provisioning profiles
+      - name: Set up code signing
         script: |
           keychain initialize
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-          # Extension 프로파일
           app-store-connect fetch-signing-files "com.nophonetime.app.monitor" \
             --type IOS_APP_STORE \
             --create
