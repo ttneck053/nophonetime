@@ -22,3 +22,7 @@ build/
 .env
 *.p12
 *.mobileprovision
+*.key
+*.cer
+*Zone.Identifier
+CertificateSigningRequest.certSigningRequest

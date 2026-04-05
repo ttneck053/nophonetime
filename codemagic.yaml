@@ -7,9 +7,9 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.nophonetime.app
+        bundle_identifier: com.ttneck.nophonetime
       vars:
-        BUNDLE_ID: com.nophonetime.app
+        BUNDLE_ID: com.ttneck.nophonetime
         XCODE_SCHEME: NoPhoneTime
       xcode: latest
 
@@ -33,7 +33,7 @@ workflows:
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-          app-store-connect fetch-signing-files "com.nophonetime.app.monitor" \
+          app-store-connect fetch-signing-files "com.ttneck.nophonetime.monitor" \
             --type IOS_APP_STORE \
             --create
           keychain add-certificates

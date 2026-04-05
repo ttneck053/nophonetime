@@ -5,7 +5,10 @@
       "Bash(mkdir -p /home/ttneck/nophonetime/NoPhoneTime/ViewModels)",
       "Bash(mkdir -p /home/ttneck/nophonetime/NoPhoneTime/Services)",
       "Bash(mkdir -p /home/ttneck/nophonetime/NoPhoneTime/Features/Setup)",
-      "Bash(mkdir -p /home/ttneck/nophonetime/NoPhoneTime/Features/Locked)"
+      "Bash(mkdir -p /home/ttneck/nophonetime/NoPhoneTime/Features/Locked)",
+      "Bash(openssl req:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

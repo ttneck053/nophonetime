@@ -31,7 +31,7 @@ targets:
       path: NoPhoneTime/NoPhoneTime.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.nophonetime.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.ttneck.nophonetime
         INFOPLIST_FILE: NoPhoneTime/Info.plist
         CODE_SIGN_ENTITLEMENTS: NoPhoneTime/NoPhoneTime.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -53,6 +53,6 @@ targets:
       path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.nophonetime.app.monitor
+        PRODUCT_BUNDLE_IDENTIFIER: com.ttneck.nophonetime.monitor
         INFOPLIST_FILE: DeviceActivityMonitorExtension/Info.plist
         CODE_SIGN_ENTITLEMENTS: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
