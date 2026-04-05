@@ -1,0 +1,58 @@
+name: NoPhoneTime
+
+options:
+  bundleIdPrefix: com.nophonetime
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1"  # iPhone only
+    SUPPORTS_MACCATALYST: false
+
+targets:
+
+  # ── 메인 앱 ──────────────────────────────────────────────
+  NoPhoneTime:
+    type: application
+    platform: iOS
+    sources:
+      - path: NoPhoneTime
+        excludes:
+          - "**/*.plist"
+          - "**/*.entitlements"
+    info:
+      path: NoPhoneTime/Info.plist
+    entitlements:
+      path: NoPhoneTime/NoPhoneTime.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nophonetime.app
+        INFOPLIST_FILE: NoPhoneTime/Info.plist
+        CODE_SIGN_ENTITLEMENTS: NoPhoneTime/NoPhoneTime.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    dependencies:
+      - target: DeviceActivityMonitorExtension
+        embed: true
+
+  # ── DeviceActivity Extension ──────────────────────────────
+  DeviceActivityMonitorExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: DeviceActivityMonitorExtension
+        excludes:
+          - "**/*.plist"
+    info:
+      path: DeviceActivityMonitorExtension/Info.plist
+    entitlements:
+      path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nophonetime.app.monitor
+        INFOPLIST_FILE: DeviceActivityMonitorExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
