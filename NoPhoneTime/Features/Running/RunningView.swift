@@ -5,59 +5,43 @@ struct RunningView: View {
     @StateObject private var location = LocationService()
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
 
-            // MARK: 시간 / 페이스
-            HStack {
-                metricBlock(value: location.elapsedFormatted, label: "시간")
+            VStack(spacing: 0) {
+                // MARK: 상단 메트릭 (시간 / 페이스)
+                HStack {
+                    metricBlock(value: location.elapsedFormatted, label: "시간", alignment: .leading)
+                    Spacer()
+                    metricBlock(value: location.paceFormatted, label: "페이스", alignment: .trailing)
+                }
+                .padding(.horizontal, 28)
+                .padding(.top, 24)
+
                 Spacer()
-                metricBlock(value: location.paceFormatted, label: "페이스")
+
+                // MARK: 거리 메트릭
+                VStack(spacing: 20) {
+                    distanceRow(label: "목표", km: vm.targetDistance, size: 36, color: Color(.secondaryLabel))
+                    distanceRow(label: "이동", km: location.movedDistance, size: 48, color: Color(.label))
+                    distanceRow(label: "남은", km: location.remainingDistance, size: 36, color: .appPink)
+                }
+
+                Spacer()
+
+                // MARK: 프로그레스 바
+                ProgressBar(progress: location.progress)
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 32)
             }
-            .padding(.horizontal, 44)
-
-            Spacer().frame(height: 40)
-
-            // MARK: 목표
-            statRow(
-                value: String(format: "%.2f", vm.targetDistance),
-                label: "목표(km)",
-                size: 64
-            )
-
-            Spacer().frame(height: 16)
-
-            // MARK: 움직인 / 남은
-            statRow(
-                value: String(format: "%.2f", location.movedDistance),
-                label: "움직인 거리(km)",
-                size: 44
-            )
-
-            Spacer().frame(height: 8)
-
-            statRow(
-                value: String(format: "%.2f", location.remainingDistance),
-                label: "남은 거리(km)",
-                size: 44
-            )
-
-            Spacer().frame(height: 48)
-
-            // MARK: 프로그레스 바
-            ProgressBar(progress: location.progress)
-                .padding(.horizontal, 32)
-
-            Spacer()
         }
-        .background(Color.white.ignoresSafeArea())
         .onAppear {
             location.startTracking(target: vm.targetDistance)
         }
         .onDisappear {
             location.stopTracking()
         }
-        .onChange(of: location.movedDistance) { _, newValue in
+        .onChange(of: location.movedDistance) { newValue in
             if newValue >= vm.targetDistance {
                 location.stopTracking()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -65,7 +49,10 @@ struct RunningView: View {
                 }
             }
         }
-        .alert("위치 권한이 필요합니다", isPresented: $location.authorizationDenied) {
+        .onChange(of: vm.authorizationFailed) { failed in
+            if failed { location.stopTracking() }
+        }
+        .alert("동작 권한이 필요합니다", isPresented: $location.authorizationDenied) {
             Button("설정 열기") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
@@ -73,31 +60,42 @@ struct RunningView: View {
             }
             Button("취소", role: .cancel) { vm.appState = .runReady }
         } message: {
-            Text("달리기 추적을 위해 위치 권한(항상 허용)이 필요합니다.")
+            Text("거리 측정을 위해 동작 권한이 필요합니다.")
         }
     }
 
-    private func metricBlock(value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private func metricBlock(value: String, label: String, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
             Text(value)
-                .font(.system(size: 32, weight: .black, design: .rounded))
+                .font(.system(size: 26, weight: .black, design: .rounded))
                 .monospacedDigit()
+                .foregroundColor(Color(.label))
             Text(label)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.gray)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Color(.secondaryLabel))
         }
     }
 
-    private func statRow(value: String, label: String, size: CGFloat) -> some View {
-        VStack(spacing: 4) {
-            Text(value)
+    private func distanceRow(label: String, km: Double, size: CGFloat, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(formatDistance(km))
                 .font(.system(size: size, weight: .black, design: .rounded))
                 .monospacedDigit()
                 .contentTransition(.numericText())
-                .animation(.linear(duration: 0.3), value: value)
+                .animation(.linear(duration: 0.3), value: km)
+                .foregroundColor(color)
             Text(label)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.gray)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Color(.secondaryLabel))
+        }
+    }
+
+    private func formatDistance(_ km: Double) -> String {
+        let meters = km * 1000
+        if meters < 1000 {
+            return String(format: "%.0f m", meters)
+        } else {
+            return String(format: "%.2f km", km)
         }
     }
 }
@@ -109,31 +107,25 @@ private struct ProgressBar: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                // 배경 (검정)
                 Capsule()
-                    .fill(Color.black)
-                    .frame(height: 12)
+                    .fill(Color(.systemFill))
+                    .frame(height: 10)
 
-                // 진행 (노랑)
                 Capsule()
                     .fill(Color.appYellow)
-                    .frame(width: max(geo.size.width * progress, 12), height: 12)
+                    .frame(width: max(geo.size.width * progress, 10), height: 10)
 
-                // 달리기 이모지
                 Text("🏃")
-                    .font(.system(size: 22))
-                    .offset(
-                        x: max(geo.size.width * progress - 14, 0),
-                        y: -18
-                    )
+                    .font(.system(size: 28))
+                    .scaleEffect(x: -1, y: 1)
+                    .offset(x: max(geo.size.width * progress - 16, 0), y: -22)
 
-                // 체크포인트 깃발
                 Text("🏁")
-                    .font(.system(size: 22))
-                    .offset(x: geo.size.width - 18, y: -18)
+                    .font(.system(size: 24))
+                    .offset(x: geo.size.width - 20, y: -20)
             }
         }
         .frame(height: 40)
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
     }
 }

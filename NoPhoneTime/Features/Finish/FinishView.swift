@@ -4,32 +4,42 @@ struct FinishView: View {
     @EnvironmentObject var vm: AppViewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
 
-            Text("끝!")
-                .font(.system(size: 88, weight: .black, design: .rounded))
-                .foregroundColor(.appPink)
-                .scaleEffect(1.0)
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 8) {
+                    Text("완료!")
+                        .font(.system(size: 52, weight: .black, design: .rounded))
+                        .foregroundColor(Color(.label))
+
+                    Text("잠금이 해제되었습니다")
+                        .font(.system(size: 15))
+                        .foregroundColor(Color(.secondaryLabel))
+                }
                 .onAppear {
-                    // 완료 햅틱
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                 }
 
-            Spacer().frame(height: 56)
+                Spacer()
 
-            Button("처음으로") {
-                vm.reset()
+                Button {
+                    vm.reset()
+                } label: {
+                    Text("처음으로")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color.appYellow)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
             }
-            .font(.system(size: 22, weight: .bold))
-            .foregroundColor(.black)
-            .frame(width: 160, height: 58)
-            .background(Color.appYellow)
-            .clipShape(Capsule())
-
-            Spacer()
         }
-        .background(Color.white.ignoresSafeArea())
     }
 }

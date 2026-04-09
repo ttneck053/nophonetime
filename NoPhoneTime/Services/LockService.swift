@@ -5,17 +5,14 @@ class LockService {
     private let store = ManagedSettingsStore()
 
     func applyLock(selection: FamilyActivitySelection) {
-        if !selection.applications.isEmpty {
-            store.shield.applications = selection.applications
+        if !selection.applicationTokens.isEmpty {
+            store.shield.applications = selection.applicationTokens
         }
-        if !selection.categories.isEmpty {
-            store.shield.applicationCategories = .specific(selection.categories)
+        if !selection.categoryTokens.isEmpty {
+            store.shield.applicationCategories = .specific(selection.categoryTokens)
         }
-        if !selection.webDomains.isEmpty {
-            store.shield.webDomains = selection.webDomains
-        }
-        if !selection.webDomainCategories.isEmpty {
-            store.shield.webDomainCategories = .specific(selection.webDomainCategories)
+        if !selection.webDomainTokens.isEmpty {
+            store.shield.webDomains = selection.webDomainTokens
         }
     }
 

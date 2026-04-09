@@ -13,12 +13,26 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     TARGETED_DEVICE_FAMILY: "1"  # iPhone only
     SUPPORTS_MACCATALYST: false
+    CODE_SIGN_STYLE: Automatic
+
+schemes:
+  NoPhoneTime:
+    build:
+      targets:
+        NoPhoneTime: all
+        DeviceActivityMonitorExtension: all
+    run:
+      config: Debug
+    archive:
+      config: Release
 
 targets:
 
   # ── 메인 앱 ──────────────────────────────────────────────
   NoPhoneTime:
     type: application
+    scheme:
+      testTargets: []
     platform: iOS
     sources:
       - path: NoPhoneTime
@@ -27,8 +41,23 @@ targets:
           - "**/*.entitlements"
     info:
       path: NoPhoneTime/Info.plist
+      properties:
+        CFBundleDisplayName: "노폰타"
+        NSLocationWhenInUseUsageDescription: "달리기 거리를 측정하기 위해 위치 정보가 필요합니다."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "백그라운드에서도 달리기 거리를 측정하기 위해 위치 정보가 필요합니다."
+        NSHealthShareUsageDescription: "달리기 운동 기록을 건강 앱에 저장하기 위해 필요합니다."
+        NSHealthUpdateUsageDescription: "달리기 운동 기록을 건강 앱에 저장하기 위해 필요합니다."
+        UIBackgroundModes:
+          - location
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
     entitlements:
       path: NoPhoneTime/NoPhoneTime.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.developer.healthkit: true
+        com.apple.security.application-groups:
+          - group.com.ttneck.nophonetime
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ttneck.nophonetime
@@ -38,6 +67,7 @@ targets:
     dependencies:
       - target: DeviceActivityMonitorExtension
         embed: true
+      - sdk: HealthKit.framework
 
   # ── DeviceActivity Extension ──────────────────────────────
   DeviceActivityMonitorExtension:
@@ -49,8 +79,16 @@ targets:
           - "**/*.plist"
     info:
       path: DeviceActivityMonitorExtension/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
     entitlements:
       path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.ttneck.nophonetime
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ttneck.nophonetime.monitor

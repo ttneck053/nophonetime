@@ -4,41 +4,54 @@ struct RunReadyView: View {
     @EnvironmentObject var vm: AppViewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
 
-            // MARK: 거리 표시
-            VStack(spacing: 12) {
-                Text("움직일 거리")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.black)
+            VStack(spacing: 0) {
+                Spacer()
 
-                Text(String(format: "%.1fkm", vm.targetDistance))
-                    .font(.system(size: 36, weight: .black, design: .rounded))
-                    .foregroundColor(.appPink)
+                VStack(spacing: 6) {
+                    Text("잠금 해제됨")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(.secondaryLabel))
+                        .textCase(.uppercase)
+                        .tracking(1.5)
+
+                    Text(formatDistance(vm.targetDistance))
+                        .font(.system(size: 52, weight: .black, design: .rounded))
+                        .foregroundColor(.appPink)
+
+                    Text("위 거리를 움직여야 잠금이 해제 됩니다.")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(.secondaryLabel))
+                        .padding(.top, 4)
+                }
+
+                Spacer()
+
+                Button {
+                    vm.startRunning()
+                } label: {
+                    Text("움직이기 시작")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(Color.appYellow)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
             }
-
-            Spacer().frame(height: 48)
-
-            // MARK: 시작 버튼
-            Button("시작") {
-                vm.startRunning()
-            }
-            .font(.system(size: 22, weight: .bold))
-            .foregroundColor(.black)
-            .frame(width: 150, height: 58)
-            .background(Color.appYellow)
-            .clipShape(Capsule())
-
-            Spacer().frame(height: 48)
-
-            // MARK: 안내 문구
-            Text("이게 끝나야 잠금이 해제 됩니다.")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.black)
-
-            Spacer()
         }
-        .background(Color.white.ignoresSafeArea())
+    }
+
+    private func formatDistance(_ km: Double) -> String {
+        let meters = Int((km * 1000).rounded())
+        if meters < 1000 {
+            return "\(meters) m"
+        } else {
+            return String(format: "%.1f km", km)
+        }
     }
 }

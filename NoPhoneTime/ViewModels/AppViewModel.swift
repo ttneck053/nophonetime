@@ -19,12 +19,29 @@ class AppViewModel: ObservableObject {
     @Published var lockHours: Int = 0
     @Published var lockMinutes: Int = 30
     @Published var targetDistance: Double = 1.0
+
+    var targetKm: Int {
+        get { Int(targetDistance) }
+        set {
+            let m = targetMeters
+            targetDistance = max(0.01, Double(newValue) + Double(m) / 1000.0)
+        }
+    }
+    var targetMeters: Int {
+        get { (Int((targetDistance * 1000).rounded()) % 1000) / 10 * 10 }
+        set {
+            let km = targetKm
+            targetDistance = max(0.01, Double(km) + Double(newValue) / 1000.0)
+        }
+    }
     @Published var remainingSeconds: Int = 0
     @Published var isAuthorized = false
+    @Published var authorizationFailed = false
 
     // MARK: - Private
     private let lockService = LockService()
     private var timerCancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
     private var lockEndDate: Date?
 
     private enum Keys {
@@ -40,6 +57,8 @@ class AppViewModel: ObservableObject {
             await requestAuthorization()
         }
         restoreState()
+        observeAuthorization()
+        observeAppActive()
     }
 
     // MARK: - Authorization
@@ -47,10 +66,55 @@ class AppViewModel: ObservableObject {
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
             isAuthorized = true
+            authorizationFailed = false
         } catch {
             isAuthorized = false
-            print("FamilyControls authorization failed: \(error)")
+            authorizationFailed = true
         }
+    }
+
+    func observeAppActive() {
+        NotificationCenter.default
+            .publisher(for: UIApplication.didBecomeActiveNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.checkAuthorizationStatus()
+            }
+            .store(in: &cancellables)
+    }
+
+    // 프롬프트 없이 현재 status만 확인 (포그라운드 복귀 시 사용)
+    func checkAuthorizationStatus() {
+        let status = AuthorizationCenter.shared.authorizationStatus
+        if status == .approved {
+            isAuthorized = true
+            authorizationFailed = false
+        } else if isAuthorized {
+            // 권한이 있었는데 해제된 경우 → 차단
+            isAuthorized = false
+            authorizationFailed = true
+            reset()
+        }
+    }
+
+    func observeAuthorization() {
+        AuthorizationCenter.shared.$authorizationStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                guard let self else { return }
+                switch status {
+                case .approved:
+                    self.isAuthorized = true
+                    self.authorizationFailed = false
+                default:
+                    if self.isAuthorized {
+                        self.isAuthorized = false
+                        self.authorizationFailed = true
+                        self.reset()
+                    }
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Start Lock
@@ -79,6 +143,13 @@ class AppViewModel: ObservableObject {
     }
 
     private func tick() {
+        // 매 틱마다 권한 확인 (권한 있다가 해제된 경우만)
+        if isAuthorized && AuthorizationCenter.shared.authorizationStatus != .approved {
+            authorizationFailed = true
+            reset()
+            return
+        }
+
         guard let endDate = lockEndDate else { return }
         let remaining = Int(endDate.timeIntervalSinceNow)
         if remaining <= 0 {
@@ -105,6 +176,7 @@ class AppViewModel: ObservableObject {
     // MARK: - Reset
     func reset() {
         timerCancellable?.cancel()
+        timerCancellable = nil
         lockService.removeLock()
         appState = .setup
         selection = FamilyActivitySelection()
@@ -157,7 +229,6 @@ class AppViewModel: ObservableObject {
         case .runReady:
             appState = .runReady
         case .running:
-            // 달리기 도중 앱이 종료됐으면 RunReady부터 다시
             appState = .runReady
         case .setup, .finish:
             break
@@ -171,6 +242,7 @@ class AppViewModel: ObservableObject {
         d.removeObject(forKey: Keys.targetDistance)
         d.removeObject(forKey: Keys.selection)
     }
+
 
     // MARK: - Helpers
     var formattedRemaining: String {

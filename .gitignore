@@ -26,3 +26,10 @@ build/
 *.cer
 *Zone.Identifier
 CertificateSigningRequest.certSigningRequest
+
+# macOS
+.DS_Store
+
+# 에러 스크린샷
+NoPhoneTime/error/
+NoPhoneTime/logo.png
