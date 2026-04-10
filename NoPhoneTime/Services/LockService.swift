@@ -5,6 +5,7 @@ class LockService {
     private let store = ManagedSettingsStore()
 
     func applyLock(selection: FamilyActivitySelection) {
+        store.application.denyAppRemoval = true
         if !selection.applicationTokens.isEmpty {
             store.shield.applications = selection.applicationTokens
         }
